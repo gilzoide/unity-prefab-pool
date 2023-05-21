@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace Gilzoide.PrefabPool
 {
     [Serializable]
-    public class PrefabPool<T> : IDisposable, ISerializationCallbackReceiver
+    public class PrefabPool<T> : IPrefabPool<T>, IDisposable, ISerializationCallbackReceiver
         where T : Component
     {
         [Tooltip("Prefab which instances will be pooled.")]
@@ -36,7 +36,6 @@ namespace Gilzoide.PrefabPool
 
         private ObjectPool<T> Pool => _pool != null ? _pool : (_pool = CreatePool());
         private ObjectPool<T> _pool;
-
 
         public PrefabPool() {}
         public PrefabPool(T prefab, int initialObjectCount = 0, int objectsPerFrame = 0, bool prewarm = true)
@@ -83,7 +82,7 @@ namespace Gilzoide.PrefabPool
         public async void Prewarm()
         {
             await Task.Yield();
-            await PrewarmAsync(_initialObjectCount, _objectsPerFrame, _cancelOnDispose.Token);
+            await PrewarmAsync(_initialObjectCount, _objectsPerFrame, CancelOnDispose.Token);
         }
 
         public async Task PrewarmAsync(int count, int itemsPerBatch = 0, CancellationToken cancellationToken = default)

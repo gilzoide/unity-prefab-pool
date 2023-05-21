@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace Gilzoide.PrefabPool
 {
-    public class PrefabPoolAsset<T> : ScriptableObject where T : Component
+    public class PrefabPoolAsset<T> : ScriptableObject, IPrefabPool<T>
+        where T : Component
     {
         [SerializeField] protected PrefabPool<T> _pool;
 
