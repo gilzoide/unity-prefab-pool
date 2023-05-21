@@ -31,7 +31,8 @@ namespace Gilzoide.PrefabPool
             set => _prefab = value;
         }
         
-        protected CancellationTokenSource _cancelOnDispose = new CancellationTokenSource();
+        protected CancellationTokenSource CancelOnDispose => _cancelOnDispose != null ? _cancelOnDispose : (_cancelOnDispose = new CancellationTokenSource());
+        private CancellationTokenSource _cancelOnDispose;
 
         private ObjectPool<T> Pool => _pool != null ? _pool : (_pool = CreatePool());
         private ObjectPool<T> _pool;
