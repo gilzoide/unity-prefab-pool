@@ -1,0 +1,12 @@
+{
+  "name": "com.gilzoide.prefab-pool",
+  "displayName": "Prefab Pool",
+  "version": "1.0.0",
+  "description": "Generic and embeddable prefab object pool.",
+  "homepage": "https://github.com/gilzoide/unity-prefab-pool",
+  "license": "Unlicense",
+  "author": {
+    "name": "Gil Barbosa Reis"
+  },
+  "unity": "2021.1"
+}
