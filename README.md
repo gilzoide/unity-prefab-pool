@@ -8,3 +8,12 @@ Prefab instance pool that is configurable in the Inspector, supports any compone
 - Supports generic typing for customizing which prefabs can be assigned to the pool.
   By default, the `Transform` component is used in the non-generic prefab pool classes.
 - Optional [IPrefabPoolBehaviour](Runtime/IPrefabPoolBehaviour.cs) interface for customizing what happens when prefab instances are acquired from/returned to the pools.
+
+
+## How to install
+Either:
+- Install using the [Unity Package Manager](https://docs.unity3d.com/Manual/upm-ui-giturl.html) with the following URL:
+  ```
+  https://github.com/gilzoide/unity-prefab-pool.git
+  ```
+- Clone this repository or download a snapshot of it directly inside your project's `Assets` or `Packages` folder.
