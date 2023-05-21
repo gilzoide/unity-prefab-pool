@@ -16,6 +16,11 @@ namespace Gilzoide.PrefabPool
             _pool.Release(instance);
         }
 
+        public bool TryGetPooled(out T instance)
+        {
+            return _pool.TryGetPooled(out instance);
+        }
+
         void OnDisable()
         {
             _pool.Dispose();
