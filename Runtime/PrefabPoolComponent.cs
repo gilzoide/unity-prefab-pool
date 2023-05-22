@@ -7,7 +7,7 @@ namespace Gilzoide.PrefabPool
     public class PrefabPoolComponent<T> : MonoBehaviour, IPrefabPool<T>
         where T : Component
     {
-        [SerializeField] protected PrefabPool<T> _pool;
+        [SerializeField] protected PrefabPool<T> _pool = new();
 
         [Header("Prewarm")]
         [Tooltip("Number of instances that will be spawned when the pool is created. "
@@ -19,24 +19,17 @@ namespace Gilzoide.PrefabPool
             + "If zero, all items will be prewarmed in a single frame.")]
         [SerializeField, Min(0)] protected int _objectsPerFrame;
 
+        protected CancellationTokenSource CancelOnDisable => _cancelOnDisable != null ? _cancelOnDisable : (_cancelOnDisable = new());
         private CancellationTokenSource _cancelOnDisable;
 
-        async void OnEnable()
+        void OnEnable()
         {
-            _cancelOnDisable = new CancellationTokenSource();
-            try
-            {
-                await _pool.PrewarmAsync(_initialObjectCount, _objectsPerFrame, _cancelOnDisable.Token);
-            }
-            catch (OperationCanceledException) {}
+            Prewarm();
         }
 
         void OnDisable()
         {
-            _cancelOnDisable.Cancel();
-            _cancelOnDisable.Dispose();
-            _cancelOnDisable = null;
-            _pool.Dispose();
+            Dispose();
         }
 
         public T Get()
@@ -52,6 +45,26 @@ namespace Gilzoide.PrefabPool
         public bool TryGetPooled(out T instance)
         {
             return _pool.TryGetPooled(out instance);
+        }
+
+        public async void Prewarm()
+        {
+            try
+            {
+                await _pool.PrewarmAsync(_initialObjectCount, _objectsPerFrame, CancelOnDisable.Token);
+            }
+            catch (OperationCanceledException) {}
+        }
+
+        public void Dispose()
+        {
+            if (_cancelOnDisable != null)
+            {
+                _cancelOnDisable.Cancel();
+                _cancelOnDisable.Dispose();
+                _cancelOnDisable = null;
+            }
+            _pool.Dispose();
         }
     }
 
