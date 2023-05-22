@@ -9,45 +9,25 @@ using Object = UnityEngine.Object;
 namespace Gilzoide.PrefabPool
 {
     [Serializable]
-    public class PrefabPool<T> : IPrefabPool<T>, IDisposable, ISerializationCallbackReceiver
+    public class PrefabPool<T> : IPrefabPool<T>, IDisposable
         where T : Component
     {
         [Tooltip("Prefab which instances will be pooled.")]
         [SerializeField] protected T _prefab;
-
-        [Header("Prewarm")]
-        [Tooltip("Number of instances that will be spawned when the pool is created. "
-            + "Instances are spawned asynchronously. "
-            + "At most 'Objects Per Frame' objects will be prewarmed per frame.")]
-        [SerializeField, Min(0)] protected int _initialObjectCount;
-        
-        [Tooltip("Maximum number of instances that will be spawned per frame when pool is created. "
-            + "If zero, all items will be prewarmed in a single frame.")]
-        [SerializeField, Min(0)] protected int _objectsPerFrame;
 
         public T Prefab
         {
             get => _prefab;
             set => _prefab = value;
         }
-        
-        protected CancellationTokenSource CancelOnDispose => _cancelOnDispose != null ? _cancelOnDispose : (_cancelOnDispose = new CancellationTokenSource());
-        private CancellationTokenSource _cancelOnDispose;
 
         private ObjectPool<T> Pool => _pool != null ? _pool : (_pool = CreatePool());
         private ObjectPool<T> _pool;
 
         public PrefabPool() {}
-        public PrefabPool(T prefab, int initialObjectCount = 0, int objectsPerFrame = 0, bool prewarm = true)
+        public PrefabPool(T prefab)
         {
             _prefab = prefab;
-            _initialObjectCount = initialObjectCount;
-            _objectsPerFrame = objectsPerFrame;
-
-            if (prewarm)
-            {
-                Prewarm();
-            }
         }
 
         public T Get()
@@ -79,15 +59,9 @@ namespace Gilzoide.PrefabPool
             }
         }
 
-        public async void Prewarm()
+        public async Task PrewarmAsync(int count, int itemsPerBatch, CancellationToken cancellationToken = default)
         {
-            await Task.Yield();
-            await PrewarmAsync(_initialObjectCount, _objectsPerFrame, CancelOnDispose.Token);
-        }
-
-        public async Task PrewarmAsync(int count, int itemsPerBatch = 0, CancellationToken cancellationToken = default)
-        {
-            if (count <= 0 || !Application.isPlaying)
+            if (count <= Pool.CountAll || !Application.isPlaying)
             {
                 return;
             }
@@ -99,27 +73,28 @@ namespace Gilzoide.PrefabPool
 
             using var _ = ListPool<T>.Get(out List<T> list);
             int batchCount = Mathf.CeilToInt((float) count / (float) itemsPerBatch);
-            for (int batch = 0; batch < batchCount && !cancellationToken.IsCancellationRequested; batch++)
+            for (int batch = 0; batch < batchCount; batch++)
             {
+                await Task.Yield();
                 for (int i = 0; i < itemsPerBatch && Pool.CountAll < count; i++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     T instance = Pool.Get();
                     OnReturnToPool(instance);
                     list.Add(instance);
                 }
-                await Task.Yield();
             }
 
             list.ForEach(Pool.Release);
         }
 
+        public void Clear()
+        {
+            _pool?.Clear();
+        }
+
         public void Dispose()
         {
-            if (_cancelOnDispose != null)
-            {
-                _cancelOnDispose.Dispose();
-                _cancelOnDispose = null;
-            }
             if (_pool != null)
             {
                 _pool.Dispose();
@@ -127,16 +102,6 @@ namespace Gilzoide.PrefabPool
             }
         }
 
-
-        public void OnBeforeSerialize()
-        {
-        }
-
-        public void OnAfterDeserialize()
-        {
-            Prewarm();
-        }
-        
         protected ObjectPool<T> CreatePool()
         {
             return new ObjectPool<T>(Create, OnTakeFromPool, OnReturnToPool, Object.Destroy);
