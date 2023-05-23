@@ -2,16 +2,16 @@ using System;
 
 namespace Gilzoide.PrefabPool
 {
-    public interface IPrefabPoolBehaviour
+    public interface IPrefabPoolObject
     {
         IDisposable PooledObject { get; set; }
         void OnTakeFromPool() {}
         void OnReturnToPool() {}
     }
 
-    public static class IPooledComponentExtensions
+    public static class IPrefabPoolObjectExtensions
     {
-        public static void ReturnToPool(this IPrefabPoolBehaviour pooledComponent)
+        public static void ReturnToPool(this IPrefabPoolObject pooledComponent)
         {
             if (pooledComponent.PooledObject != null)
             {

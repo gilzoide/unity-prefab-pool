@@ -10,7 +10,7 @@ namespace Gilzoide.PrefabPool
 {
     [Serializable]
     public class PrefabPool<T> : IPrefabPool<T>, IDisposable
-        where T : Component
+        where T : Object
     {
         [Tooltip("Prefab which instances will be pooled.")]
         [SerializeField] protected T _prefab;
@@ -20,6 +20,10 @@ namespace Gilzoide.PrefabPool
             get => _prefab;
             set => _prefab = value;
         }
+
+        public int CountAll => _pool?.CountAll ?? 0;
+        public int CountActive => _pool?.CountActive ?? 0;
+        public int CountInactive => _pool?.CountInactive ?? 0;
 
         private ObjectPool<T> Pool => _pool != null ? _pool : (_pool = CreatePool());
         private ObjectPool<T> _pool;
@@ -32,10 +36,10 @@ namespace Gilzoide.PrefabPool
 
         public T Get()
         {
-            var pooledObject = Pool.Get(out T instance);
-            if (instance is IPrefabPoolBehaviour pooledBehaviour)
+            var returnToPoolDisposable = Pool.Get(out T instance);
+            if (instance is IPrefabPoolObject pooledBehaviour)
             {
-                pooledBehaviour.PooledObject = pooledObject;
+                pooledBehaviour.PooledObject = returnToPoolDisposable;
             }
             return instance;
         }
@@ -47,9 +51,9 @@ namespace Gilzoide.PrefabPool
 
         public bool TryGetPooled(out T instance)
         {
-            if (Pool.CountInactive > 0)
+            if (CountInactive > 0)
             {
-                instance = Pool.Get();
+                instance = Get();
                 return true;
             }
             else
@@ -75,7 +79,6 @@ namespace Gilzoide.PrefabPool
             int batchCount = Mathf.CeilToInt((float) count / (float) itemsPerBatch);
             for (int batch = 0; batch < batchCount; batch++)
             {
-                await Task.Yield();
                 for (int i = 0; i < itemsPerBatch && Pool.CountAll < count; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -83,6 +86,7 @@ namespace Gilzoide.PrefabPool
                     OnReturnToPool(instance);
                     list.Add(instance);
                 }
+                await Task.Yield();
             }
 
             list.ForEach(Pool.Release);
@@ -109,24 +113,43 @@ namespace Gilzoide.PrefabPool
 
         protected T Create()
         {
-            return Object.Instantiate(_prefab);
+            T instance = Object.Instantiate(_prefab);
+            instance.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
+            return instance;
         }
 
         protected void OnTakeFromPool(T instance)
         {
-            instance.gameObject.SetActive(true);
-            if (instance is IPrefabPoolBehaviour pooledBehaviour)
+            if (instance is IPrefabPoolObject pooledObject)
             {
-                pooledBehaviour.OnTakeFromPool();
+                pooledObject.OnTakeFromPool();
+            }
+
+            if (instance is Component component)
+            {
+                component.gameObject.SetActive(true);
+            }
+            else if (instance is GameObject gameObject)
+            {
+                gameObject.SetActive(true);
             }
         }
 
         protected void OnReturnToPool(T instance)
         {
-            instance.gameObject.SetActive(false);
-            if (instance is IPrefabPoolBehaviour pooledBehaviour)
+            if (instance is Component component)
             {
-                pooledBehaviour.OnReturnToPool();
+                component.gameObject.SetActive(false);
+            }
+            else if (instance is GameObject gameObject)
+            {
+                gameObject.SetActive(false);
+            }
+
+            if (instance is IPrefabPoolObject pooledObject)
+            {
+                pooledObject.PooledObject = null;
+                pooledObject.OnReturnToPool();
             }
         }
     }
