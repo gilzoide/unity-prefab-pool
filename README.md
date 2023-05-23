@@ -32,6 +32,11 @@ using UnityEngine;
 public class MyScript : MonoBehaviour
 {
     public PrefabPool<Transform> myTransformPool;
+
+    void OnDestroy()
+    {
+        myTransformPool.Dispose();
+    }
 }
 ```
 ![Inspector showing "myTransformPool" expecting an object of type "Transform"](Extras~/generic-transform-pool.png)
@@ -44,7 +49,7 @@ To customize the prefab type accepted by a prefab pool component, create a concr
 ```cs
 using Gilzoide.PrefabPool;
 
-public class MyScriptPoolComponent : PrefabPoolComponent&lt;MyScript&gt;
+public class MyScriptPoolComponent : PrefabPoolComponent<MyScript>;
 {
 }
 ```
