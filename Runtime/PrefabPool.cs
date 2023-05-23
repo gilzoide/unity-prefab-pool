@@ -69,23 +69,32 @@ namespace Gilzoide.PrefabPool
             }
         }
 
-        public async Task PrewarmAsync(int count, int itemsPerBatch, CancellationToken cancellationToken = default)
+        public async void Prewarm(int count, int instancesPerFrame = 0, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await PrewarmAsync(count, instancesPerFrame, cancellationToken);
+            }
+            catch (OperationCanceledException) {}
+        }
+
+        public async Task PrewarmAsync(int count, int instancesPerFrame = 0, CancellationToken cancellationToken = default)
         {
             if (count <= Pool.CountAll || !Application.isPlaying)
             {
                 return;
             }
 
-            if (itemsPerBatch <= 0)
+            if (instancesPerFrame <= 0)
             {
-                itemsPerBatch = count;
+                instancesPerFrame = count;
             }
 
             using var _ = ListPool<T>.Get(out List<T> list);
-            int batchCount = Mathf.CeilToInt((float) count / (float) itemsPerBatch);
+            int batchCount = Mathf.CeilToInt((float) count / (float) instancesPerFrame);
             for (int batch = 0; batch < batchCount; batch++)
             {
-                for (int i = 0; i < itemsPerBatch && Pool.CountAll < count; i++)
+                for (int i = 0; i < instancesPerFrame && Pool.CountAll < count; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     T instance = Pool.Get();

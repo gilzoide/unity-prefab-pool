@@ -38,6 +38,11 @@ namespace Gilzoide.PrefabPool
             Dispose();
         }
 
+        void OnDestroy()
+        {
+            Dispose();
+        }
+
         public T Get()
         {
             return _pool.Get();
@@ -63,13 +68,9 @@ namespace Gilzoide.PrefabPool
             _pool.Clear();
         }
 
-        public async void Prewarm()
+        public void Prewarm()
         {
-            try
-            {
-                await _pool.PrewarmAsync(_initialObjectCount, _objectsPerFrame, CancelOnDisable.Token);
-            }
-            catch (OperationCanceledException) {}
+            _pool.Prewarm(_initialObjectCount, _objectsPerFrame, CancelOnDisable.Token);
         }
 
         public void Dispose()
