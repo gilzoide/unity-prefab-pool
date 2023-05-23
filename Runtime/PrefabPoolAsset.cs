@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Pool;
 using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool
 {
-    public class PrefabPoolAsset<T> : ScriptableObject, IPrefabPool<T>
+    public class PrefabPoolAsset<T> : ScriptableObject, IObjectPool<T>
         where T : Object
     {
         [SerializeField] protected PrefabPool<T> _pool = new();
@@ -19,6 +20,10 @@ namespace Gilzoide.PrefabPool
         [Tooltip("Maximum number of instances that will be spawned per frame when pool is created. "
             + "If zero, all items will be prewarmed in a single frame.")]
         [SerializeField, Min(0)] protected int _objectsPerFrame;
+
+        public int CountAll => _pool.CountAll;
+        public int CountActive => _pool.CountActive;
+        public int CountInactive => _pool.CountInactive;
 
         protected CancellationTokenSource CancelOnDisable => _cancelOnDisable != null ? _cancelOnDisable : (_cancelOnDisable = new());
         private CancellationTokenSource _cancelOnDisable;
@@ -50,6 +55,11 @@ namespace Gilzoide.PrefabPool
         public T Get()
         {
             return _pool.Get();
+        }
+
+        public PooledObject<T> Get(out T instance)
+        {
+            return _pool.Get(out instance);
         }
 
         public void Release(T instance)

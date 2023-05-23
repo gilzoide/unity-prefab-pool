@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace Gilzoide.PrefabPool
 {
     [Serializable]
-    public class PrefabPool<T> : IPrefabPool<T>, IDisposable
+    public class PrefabPool<T> : IObjectPool<T>, IDisposable
         where T : Object
     {
         [Tooltip("Prefab which instances will be pooled.")]
@@ -36,12 +36,18 @@ namespace Gilzoide.PrefabPool
 
         public T Get()
         {
-            var returnToPoolDisposable = Pool.Get(out T instance);
-            if (instance is IPrefabPoolObject pooledBehaviour)
-            {
-                pooledBehaviour.PooledObject = returnToPoolDisposable;
-            }
+            _ = Get(out T instance);
             return instance;
+        }
+
+        public PooledObject<T> Get(out T instance)
+        {
+            var pooledObject = Pool.Get(out instance);
+            if (instance is IPrefabPoolObject obj)
+            {
+                obj.PooledObject = pooledObject;
+            }
+            return pooledObject;
         }
 
         public void Release(T instance)
