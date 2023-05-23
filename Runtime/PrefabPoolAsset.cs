@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool
 {
     public class PrefabPoolAsset<T> : ScriptableObject, IPrefabPool<T>
-        where T : Component
+        where T : Object
     {
         [SerializeField] protected PrefabPool<T> _pool = new();
 
@@ -88,7 +89,7 @@ namespace Gilzoide.PrefabPool
     }
 
     [CreateAssetMenu(menuName = "PrefabPool/PrefabPoolAsset")]
-    public class PrefabPoolAsset : PrefabPoolAsset<Transform>
+    public class PrefabPoolAsset : PrefabPoolAsset<GameObject>
     {
     }
 }

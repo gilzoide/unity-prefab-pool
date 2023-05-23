@@ -155,7 +155,7 @@ namespace Gilzoide.PrefabPool
     }
 
     [Serializable]
-    public class PrefabPool : PrefabPool<Transform>
+    public class PrefabPool : PrefabPool<GameObject>
     {
     }
 }

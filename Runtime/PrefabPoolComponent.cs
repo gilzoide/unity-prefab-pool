@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool
 {
     public class PrefabPoolComponent<T> : MonoBehaviour, IPrefabPool<T>
-        where T : Component
+        where T : Object
     {
         [SerializeField] protected PrefabPool<T> _pool = new();
 
@@ -73,7 +74,7 @@ namespace Gilzoide.PrefabPool
         }
     }
 
-    public class PrefabPoolComponent : PrefabPoolComponent<Transform>
+    public class PrefabPoolComponent : PrefabPoolComponent<GameObject>
     {
     }
 }
