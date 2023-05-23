@@ -47,6 +47,11 @@ namespace Gilzoide.PrefabPool
             return _pool.TryGetPooled(out instance);
         }
 
+        public void Clear()
+        {
+            _pool.Clear();
+        }
+
         public async void Prewarm()
         {
             try

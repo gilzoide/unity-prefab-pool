@@ -5,5 +5,6 @@ namespace Gilzoide.PrefabPool
         T Get();
         void Release(T instance);
         bool TryGetPooled(out T instance);
+        void Clear();
     }
 }
