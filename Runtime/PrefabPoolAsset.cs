@@ -4,8 +4,7 @@ using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool
 {
-    public class PrefabPoolAsset<T> : ScriptableObject, IObjectPool<T>
-        where T : Object
+    public class PrefabPoolAsset<T> : ScriptableObject, IPrefabPool<T> where T : Object
     {
         [SerializeField] protected PrefabPool<T> _pool = new();
 
@@ -22,6 +21,8 @@ namespace Gilzoide.PrefabPool
         public int CountAll => _pool.CountAll;
         public int CountActive => _pool.CountActive;
         public int CountInactive => _pool.CountInactive;
+
+        public T Prefab => _pool.Prefab;
 
         void OnEnable()
         {
@@ -67,11 +68,6 @@ namespace Gilzoide.PrefabPool
             _pool.Release(instance);
         }
 
-        public bool TryGetPooled(out T instance)
-        {
-            return _pool.TryGetPooled(out instance);
-        }
-
         public void Clear()
         {
             _pool.Clear();
@@ -88,7 +84,7 @@ namespace Gilzoide.PrefabPool
         }
     }
 
-    [CreateAssetMenu(menuName = "PrefabPool/PrefabPoolAsset")]
+    [CreateAssetMenu(menuName = "Prefab Pool/Prefab Pool Asset")]
     public class PrefabPoolAsset : PrefabPoolAsset<GameObject>
     {
     }
