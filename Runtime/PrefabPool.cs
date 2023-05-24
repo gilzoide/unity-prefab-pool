@@ -15,12 +15,6 @@ namespace Gilzoide.PrefabPool
         [Tooltip("Prefab which instances will be pooled.")]
         [SerializeField] protected T _prefab;
 
-        public T Prefab
-        {
-            get => _prefab;
-            set => _prefab = value;
-        }
-
         public int CountAll => _pool?.CountAll ?? 0;
         public int CountActive => _pool?.CountActive ?? 0;
         public int CountInactive => _pool?.CountInactive ?? 0;
