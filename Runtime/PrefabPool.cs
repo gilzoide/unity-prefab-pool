@@ -31,6 +31,11 @@ namespace Gilzoide.PrefabPool
             _prefab = prefab;
         }
 
+        ~PrefabPool()
+        {
+            Dispose();
+        }
+
         public T Get()
         {
             _ = Get(out T instance);
