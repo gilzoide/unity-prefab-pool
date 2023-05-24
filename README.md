@@ -138,3 +138,23 @@ public class MyScriptPoolAsset : PrefabPoolAsset<MyScript>
 ```
 ![Inspector showing a prefab pool asset expecting a prefab of type "MyScript"](Extras~/generic-pool-asset.png)
 </details>
+
+
+## Similar projects
+- https://github.com/BeauPrime/BeauPools
+- https://github.com/coimbrastudios/object-pool
+- https://github.com/jeffbert/Unity-Component-Pool
+- https://github.com/expressobits/Pools
+- https://github.com/FredericRP/ObjectPool
+- https://github.com/coryleach/UnityPooling
+- https://github.com/LeGustaVinho/pool
+- https://github.com/QFSW/MasterObjectPooler2
+
+
+## Why another implementation?
+The reason I made a brand new implementation is because alternatives either:
+- Use singleton/static pools without explicit lifetimes
+- Don't support specifying generic prefab types, accepting only `GameObject`s
+- Don't have Inspector-ready serializable pool types, being too code oriented
+- Don't support pools as assets using `ScriptableObject`s
+- Don't support asynchronous prewarming with configurable batch size, potentially leading to CPU spikes while instantiating prefabs
