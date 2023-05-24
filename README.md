@@ -7,8 +7,8 @@ Prefab instance pool that is configurable in the Inspector, supports any engine 
 - Supports prewarming instances: configure pools to instantiate a number of prefabs when created, with an optional limit of objects per frame to avoid spikes in CPU usage.
 - Supports generic typing for customizing which prefabs can be assigned to the pool.
   By default, the `GameObject` type is used in the non-generic prefab pool classes.
-- Optional [IPrefabPoolObject](Runtime/IPrefabPoolObject.cs) interface for customizing what happens when prefab instances are acquired from/returned to the pools.
-  Just implement the interface in your script, use a concrete prefab pool with your script type and you're set!
+- Optionally add scripts that implement [IPrefabPoolObject](Runtime/IPrefabPoolObject.cs) to the prefab for receiving callbacks when object is taken from/returned to pool.
+  With this, you can also easily return the prefab to the pool by calling the `IPrefabPoolObject.ReturnToPool` extension method.
 
 
 ## How to install

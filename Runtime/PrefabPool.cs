@@ -39,10 +39,14 @@ namespace Gilzoide.PrefabPool
 
         public PooledObject<T> Get(out T instance)
         {
-            var pooledObject = Pool.Get(out instance);
-            if (instance is IPrefabPoolObject obj)
+            PooledObject<T> pooledObject = Pool.Get(out instance);
+            using (GetInstanceObjects(instance, out List<IPrefabPoolObject> list, out _))
             {
-                obj.PooledObject = pooledObject;
+                for (int i = 0, count = list.Count; i < count; i++)
+                {
+                    IPrefabPoolObject obj = list[i];
+                    obj.PooledObject = pooledObject;
+                }
             }
             return pooledObject;
         }
@@ -119,37 +123,60 @@ namespace Gilzoide.PrefabPool
 
         protected void OnTakeFromPool(T instance)
         {
-            if (instance is IPrefabPoolObject pooledObject)
+            using (GetInstanceObjects(instance, out List<IPrefabPoolObject> list, out GameObject gameObject))
             {
-                pooledObject.OnTakeFromPool();
-            }
-
-            if (instance is Component component)
-            {
-                component.gameObject.SetActive(true);
-            }
-            else if (instance is GameObject gameObject)
-            {
-                gameObject.SetActive(true);
+                for (int i = 0, count = list.Count; i < count; i++)
+                {
+                    IPrefabPoolObject poolObject = list[i];
+                    poolObject.OnTakeFromPool();
+                }
+                if (gameObject)
+                {
+                    gameObject.SetActive(true);
+                }
             }
         }
 
         protected void OnReturnToPool(T instance)
         {
-            if (instance is Component component)
+            using (GetInstanceObjects(instance, out List<IPrefabPoolObject> list, out GameObject gameObject))
             {
-                component.gameObject.SetActive(false);
+                if (gameObject)
+                {
+                    gameObject.SetActive(false);
+                }
+                for (int i = 0, count = list.Count; i < count; i++)
+                {
+                    IPrefabPoolObject poolObject = list[i];
+                    poolObject.PooledObject = null;
+                    poolObject.OnReturnToPool();
+                }
             }
-            else if (instance is GameObject gameObject)
-            {
-                gameObject.SetActive(false);
-            }
+        }
 
-            if (instance is IPrefabPoolObject pooledObject)
+        private PooledObject<List<IPrefabPoolObject>> GetInstanceObjects(T instance, out List<IPrefabPoolObject> objs, out GameObject gameObject)
+        {
+            var pooledList = ListPool<IPrefabPoolObject>.Get(out objs);
+            if (instance is GameObject go)
             {
-                pooledObject.PooledObject = null;
-                pooledObject.OnReturnToPool();
+                gameObject = go;
+                gameObject.GetComponentsInChildren(true, objs);
             }
+            else if (instance is Component component)
+            {
+                gameObject = component.gameObject;
+                gameObject.GetComponentsInChildren(true, objs);
+            }
+            else if (instance is IPrefabPoolObject poolObject)
+            {
+                gameObject = null;
+                objs.Add(poolObject);
+            }
+            else
+            {
+                gameObject = null;
+            }
+            return pooledList;
         }
 
         private async Task PrewarmAsyncInternal(int count, int instancesPerFrame, CancellationToken cancellationToken)
@@ -164,7 +191,7 @@ namespace Gilzoide.PrefabPool
                 instancesPerFrame = count;
             }
 
-            using var returnListToPoolOnDispose = ListPool<T>.Get(out List<T> list);
+            using (ListPool<T>.Get(out List<T> list))
             while (true)
             {
                 for (int i = 0; i < instancesPerFrame; i++)
