@@ -8,7 +8,9 @@ Prefab instance pool that is configurable in the Inspector, supports any engine 
 - Supports generic typing for customizing which prefabs can be assigned to the pool.
   By default, the `GameObject` type is used in the non-generic prefab pool classes.
 - Optionally add scripts that implement [IPrefabPoolObject](Runtime/IPrefabPoolObject.cs) to the prefab for receiving callbacks when object is taken from/returned to pool.
-  With this, you can also easily return the prefab to the pool by calling the `IPrefabPoolObject.ReturnToPool` extension method.
+  With this, you can also easily return the prefab to the pool by calling the `IPrefabPoolObject.ReturnToPool()` extension method.
+- [Addressables](https://docs.unity3d.com/Packages/com.unity.addressables@latest) support: just use the `AddressablePrefabPool*` variants instead of the `PrefabPool*` ones and setup the prefab's asset reference in the Inspector.
+  Addressables are automatically loaded when the first instance is created and released when the pool is disposed of.
 
 
 ## How to install
