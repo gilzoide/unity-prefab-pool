@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using UnityEngine;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
@@ -24,9 +22,6 @@ namespace Gilzoide.PrefabPool
         public int CountAll => _pool.CountAll;
         public int CountActive => _pool.CountActive;
         public int CountInactive => _pool.CountInactive;
-
-        protected CancellationTokenSource CancelOnDisable => _cancelOnDisable != null ? _cancelOnDisable : (_cancelOnDisable = new());
-        private CancellationTokenSource _cancelOnDisable;
 
         void OnEnable()
         {
@@ -70,17 +65,11 @@ namespace Gilzoide.PrefabPool
 
         public void Prewarm()
         {
-            _pool.Prewarm(_initialObjectCount, _objectsPerFrame, CancelOnDisable.Token);
+            _pool.Prewarm(_initialObjectCount, _objectsPerFrame);
         }
 
         public void Dispose()
         {
-            if (_cancelOnDisable != null)
-            {
-                _cancelOnDisable.Cancel();
-                _cancelOnDisable.Dispose();
-                _cancelOnDisable = null;
-            }
             _pool.Dispose();
         }
     }
