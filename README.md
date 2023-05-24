@@ -20,9 +20,74 @@ Either:
 - Clone this repository or download a snapshot of it directly inside your project's `Assets` or `Packages` folder.
 
 
+## Usage example
+```cs
+using System.Collections;
+using Gilzoide.PrefabPool;
+using UnityEngine;
+using UnityEngine.Pool;
+
+public class MyScript : MonoBehaviour
+{
+    // 1) Reference a prefab pool:
+
+    // 1.a) Reference for a PrefabPoolComponent from your scene.
+    //      Set this in the Inspector.
+    public PrefabPoolComponent myPoolComponent;
+    
+    // 1.b) Reference for a PrefabPoolAsset from your project.
+    //      Set this in the Inspector.
+    public PrefabPoolAsset myPoolAsset;
+    
+    // 1.c) Private/embedded PrefabPool, needs manual prewarm/disposal.
+    public PrefabPool myPoolVariable;
+
+
+    void Start()
+    {
+        // 2) (optional) Prewarm private/embedded pools.
+        //    Passing "instancesPerFrame: N" makes instances be
+        //    created frame by frame, avoiding CPU spikes.
+        myPoolVariable.Prewarm(10, instancesPerFrame: 1);
+        //    Component/asset pools prewarm automatically in their `OnEnable`.
+
+        for (int i = 0; i < 10; i++)
+        {
+            StartCoroutine(UseInstanceFromPool(myPoolComponent));
+            StartCoroutine(UseInstanceFromPool(myPoolAsset));
+            StartCoroutine(UseInstanceFromPool(myPoolVariable));
+        }
+    }
+
+    // 3) Use the pool:
+    //    (All prefab pool types implement IObjectPool)
+    public IEnumerator UseInstanceFromPool(IObjectPool<GameObject> pool)
+    {
+        // 3.1) Get an instance.
+        GameObject instance = pool.Get();
+        
+        // 3.2) Do something with your instance.
+        yield return new WaitForSeconds(1);
+        
+        // 3.3) Return instance to pool after done with it.
+        pool.Release(instance);
+    }
+
+    // 4) Dispose of private/embedded pools.
+    //    Embedded pools should always be disposed when not needed anymore!
+    //    Component/asset pools dispose automatically in their `OnDisable`.
+    void OnDestroy()
+    {
+        myPoolVariable.Dispose();
+    }
+}
+```
+
+
 ## Using generic prefab pools
 <details>
 <summary>Specifying the prefab type for <code>PrefabPool<></code></summary>
+
 To customize the prefab type accepted by a prefab pool, just declare your variable with a concrete version of the <code>PrefabPool<></code> class.
 
 ```cs
@@ -44,6 +109,7 @@ public class MyScript : MonoBehaviour
 
 <details>
 <summary>Specifying the prefab type for <code>PrefabPoolComponent<></code></summary>
+
 To customize the prefab type accepted by a prefab pool component, create a concrete class that inherits <code>PrefabPoolComponent<></code>:
 
 ```cs
@@ -58,6 +124,7 @@ public class MyScriptPoolComponent : PrefabPoolComponent<MyScript>;
 
 <details>
 <summary>Specifying the prefab type for <code>PrefabPoolAsset<></code></summary>
+
 To customize the prefab type accepted by a prefab pool asset, create a concrete class that inherits <code>PrefabPoolAsset<></code>:
 
 ```cs
