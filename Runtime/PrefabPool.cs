@@ -159,12 +159,21 @@ namespace Gilzoide.PrefabPool
                 return;
             }
 
-            using var returnListToPoolOnDispose = ListPool<T>.Get(out List<T> list);
-            int batchCount = Mathf.CeilToInt((float) count / (float) instancesPerFrame);
-            for (int batch = 0; batch < batchCount; batch++)
+            if (instancesPerFrame <= 0)
             {
-                for (int i = 0; i < instancesPerFrame && Pool.CountAll < count; i++)
+                instancesPerFrame = count;
+            }
+
+            using var returnListToPoolOnDispose = ListPool<T>.Get(out List<T> list);
+            while (true)
+            {
+                for (int i = 0; i < instancesPerFrame; i++)
                 {
+                    if (Pool.CountAll >= count)
+                    {
+                        list.ForEach(Pool.Release);
+                        return;
+                    }
                     cancellationToken.ThrowIfCancellationRequested();
                     T instance = Pool.Get();
                     OnReturnToPool(instance);
@@ -172,13 +181,7 @@ namespace Gilzoide.PrefabPool
                 }
                 await Task.Yield();
             }
-
-            for (int i = 0, imax = list.Count; i < imax; i++)
-            {
-                Pool.Release(list[i]);
-            }
         }
-
     }
 
     [Serializable]
