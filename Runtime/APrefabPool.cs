@@ -36,16 +36,16 @@ namespace Gilzoide.PrefabPool
 
         public PooledObject<T> Get(out T instance)
         {
-            PooledObject<T> pooledObject = Pool.Get(out instance);
-            using (GetInstanceObjects(instance, out List<IPrefabPoolObject> list, out _))
+            PooledObject<T> poolSentinel = Pool.Get(out instance);
+            using (GetInstanceObjects(instance, out List<IPooledObject> list, out _))
             {
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
-                    IPrefabPoolObject obj = list[i];
-                    obj.PooledObject = pooledObject;
+                    IPooledObject obj = list[i];
+                    obj.PoolSentinel = poolSentinel;
                 }
             }
-            return pooledObject;
+            return poolSentinel;
         }
 
         public void Release(T instance)
@@ -94,7 +94,7 @@ namespace Gilzoide.PrefabPool
 
         protected ObjectPool<T> CreatePool()
         {
-            return new ObjectPool<T>(Create, OnTakeFromPool, OnReturnToPool, Object.Destroy);
+            return new ObjectPool<T>(Create, OnGet, OnRelease, Object.Destroy);
         }
 
         protected T Create()
@@ -104,14 +104,14 @@ namespace Gilzoide.PrefabPool
             return instance;
         }
 
-        protected void OnTakeFromPool(T instance)
+        protected void OnGet(T instance)
         {
-            using (GetInstanceObjects(instance, out List<IPrefabPoolObject> list, out GameObject gameObject))
+            using (GetInstanceObjects(instance, out List<IPooledObject> list, out GameObject gameObject))
             {
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
-                    IPrefabPoolObject poolObject = list[i];
-                    poolObject.OnTakeFromPool();
+                    IPooledObject poolObject = list[i];
+                    poolObject.OnGetFromPool();
                 }
                 if (gameObject)
                 {
@@ -120,9 +120,9 @@ namespace Gilzoide.PrefabPool
             }
         }
 
-        protected void OnReturnToPool(T instance)
+        protected void OnRelease(T instance)
         {
-            using (GetInstanceObjects(instance, out List<IPrefabPoolObject> list, out GameObject gameObject))
+            using (GetInstanceObjects(instance, out List<IPooledObject> list, out GameObject gameObject))
             {
                 if (gameObject)
                 {
@@ -130,16 +130,16 @@ namespace Gilzoide.PrefabPool
                 }
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
-                    IPrefabPoolObject poolObject = list[i];
-                    poolObject.PooledObject = null;
-                    poolObject.OnReturnToPool();
+                    IPooledObject poolObject = list[i];
+                    poolObject.PoolSentinel = null;
+                    poolObject.OnReleaseToPool();
                 }
             }
         }
 
-        private PooledObject<List<IPrefabPoolObject>> GetInstanceObjects(T instance, out List<IPrefabPoolObject> objs, out GameObject gameObject)
+        private PooledObject<List<IPooledObject>> GetInstanceObjects(T instance, out List<IPooledObject> objs, out GameObject gameObject)
         {
-            var pooledList = ListPool<IPrefabPoolObject>.Get(out objs);
+            var pooledList = ListPool<IPooledObject>.Get(out objs);
             if (instance is GameObject go)
             {
                 gameObject = go;
@@ -150,7 +150,7 @@ namespace Gilzoide.PrefabPool
                 gameObject = component.gameObject;
                 gameObject.GetComponentsInChildren(true, objs);
             }
-            else if (instance is IPrefabPoolObject poolObject)
+            else if (instance is IPooledObject poolObject)
             {
                 gameObject = null;
                 objs.Add(poolObject);
@@ -186,7 +186,7 @@ namespace Gilzoide.PrefabPool
                     }
                     cancellationToken.ThrowIfCancellationRequested();
                     T instance = Pool.Get();
-                    OnReturnToPool(instance);
+                    OnRelease(instance);
                     list.Add(instance);
                 }
                 await Task.Yield();
