@@ -83,7 +83,7 @@ namespace Gilzoide.PrefabPool
         public async Task PrewarmAsync(int count, int instancesPerFrame, CancellationToken cancellationToken)
         {
             using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancelOnDispose.Token);
-            await PrewarmAsyncInternal(count, instancesPerFrame, CancelOnDispose.Token);
+            await PrewarmAsyncInternal(count, instancesPerFrame, linkedCancellation.Token);
         }
 
         public void Clear()
@@ -154,7 +154,7 @@ namespace Gilzoide.PrefabPool
             }
         }
 
-        private PooledObject<List<IPooledObject>> GetInstanceObjects(T instance, out List<IPooledObject> objs, out GameObject gameObject)
+        protected PooledObject<List<IPooledObject>> GetInstanceObjects(T instance, out List<IPooledObject> objs, out GameObject gameObject)
         {
             var pooledList = ListPool<IPooledObject>.Get(out objs);
             if (instance is GameObject go)
