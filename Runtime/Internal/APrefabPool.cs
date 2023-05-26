@@ -66,7 +66,7 @@ namespace Gilzoide.PrefabPool
 
         public void Release(T instance)
         {
-            Pool.Release(instance);
+            _pool?.Release(instance);
         }
 
         public async void Prewarm(int count, int instancesPerFrame = 0)
@@ -140,6 +140,11 @@ namespace Gilzoide.PrefabPool
         {
             using (GetInstanceObjects(instance, out List<IPooledObject> list, out GameObject gameObject))
             {
+                for (int i = 0, count = list.Count; i < count; i++)
+                {
+                    IPooledObject poolObject = list[i];
+                    poolObject.PoolSentinel = default;
+                }
                 if (gameObject)
                 {
                     gameObject.SetActive(false);
@@ -147,7 +152,6 @@ namespace Gilzoide.PrefabPool
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
                     IPooledObject poolObject = list[i];
-                    poolObject.PoolSentinel = default;
                     poolObject.OnReleaseToPool();
                 }
             }
