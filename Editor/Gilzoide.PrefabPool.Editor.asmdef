@@ -1,0 +1,18 @@
+{
+    "name": "Gilzoide.PrefabPool.Editor",
+    "rootNamespace": "Gilzoide.PrefabPool.Editor",
+    "references": [
+        "GUID:36a37e1f6674f4ab0aa16500f51bbd01"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
