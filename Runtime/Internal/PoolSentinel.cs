@@ -1,21 +1,31 @@
-using UnityEngine;
+using System;
+using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool
 {
-    public struct PoolSentinel
+    public struct PoolSentinel : IDisposable
     {
         public IPrefabPool Pool;
         public Object PooledObject;
 
-        public bool CanRelease => Pool != null && PooledObject != null;
+        public PoolSentinel(IPrefabPool pool, Object pooledObject)
+        {
+            Pool = pool;
+            PooledObject = pooledObject;
+        }
 
         public void ReturnToPool()
         {
-            if (CanRelease)
+            if (Pool != null && PooledObject != null)
             {
                 Pool.Release(PooledObject);
                 this = default;
             }
+        }
+
+        public void Dispose()
+        {
+            ReturnToPool();
         }
     }
 }

@@ -34,19 +34,16 @@ namespace Gilzoide.PrefabPool
             return instance;
         }
 
-        public PooledObject<T> Get(out T instance)
+        public PoolSentinel Get(out T instance)
         {
-            PooledObject<T> poolSentinel = Pool.Get(out instance);
+            instance = Pool.Get();
+            PoolSentinel poolSentinel = new PoolSentinel(this, instance);
             using (GetInstanceObjects(instance, out List<IPooledObject> list, out _))
             {
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
                     IPooledObject obj = list[i];
-                    obj.PoolSentinel = new PoolSentinel
-                    {
-                        Pool = this,
-                        PooledObject = instance,
-                    };
+                    obj.PoolSentinel = poolSentinel;
                 }
             }
             return poolSentinel;

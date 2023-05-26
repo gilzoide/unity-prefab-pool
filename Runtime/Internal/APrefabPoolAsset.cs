@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Gilzoide.PrefabPool
 {
@@ -59,7 +58,7 @@ namespace Gilzoide.PrefabPool
             return _pool.Get();
         }
 
-        public PooledObject<T> Get(out T instance)
+        public PoolSentinel Get(out T instance)
         {
             return _pool.Get(out instance);
         }

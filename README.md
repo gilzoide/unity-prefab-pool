@@ -62,8 +62,8 @@ public class MyScript : MonoBehaviour
     }
 
     // 3) Use the pool:
-    //    (All prefab pool types implement IObjectPool)
-    public IEnumerator UseInstanceFromPool(IObjectPool<GameObject> pool)
+    //    (All prefab pool types implement IPrefabPool<>)
+    public IEnumerator UseInstanceFromPool(IPrefabPool<GameObject> pool)
     {
         // 3.1) Get an instance.
         GameObject instance = pool.Get();

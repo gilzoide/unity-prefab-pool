@@ -5,12 +5,20 @@ namespace Gilzoide.PrefabPool
 {
     public interface IPrefabPool
     {
+        int CountAll { get; }
+        int CountActive { get; }
+        int CountInactive { get; }
+
+        void Clear();
         void Release(Object instance);
     }
 
-    public interface IPrefabPool<T> : IPrefabPool, IObjectPool<T> where T : Object
+    public interface IPrefabPool<T> : IPrefabPool where T : Object
     {
         T Prefab { get; }
+        T Get();
+        PoolSentinel Get(out T instance);
+        void Release(T instance);
     }
 
     public static class IPrefabPoolExtensions
