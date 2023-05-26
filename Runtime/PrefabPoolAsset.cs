@@ -63,6 +63,11 @@ namespace Gilzoide.PrefabPool
             return _pool.Get(out instance);
         }
 
+        public void Release(Object instance)
+        {
+            _pool.Release(instance);
+        }
+
         public void Release(T instance)
         {
             _pool.Release(instance);

@@ -42,10 +42,26 @@ namespace Gilzoide.PrefabPool
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
                     IPooledObject obj = list[i];
-                    obj.PoolSentinel = poolSentinel;
+                    obj.PoolSentinel = new PoolSentinel
+                    {
+                        Pool = this,
+                        PooledObject = instance,
+                    };
                 }
             }
             return poolSentinel;
+        }
+
+        public void Release(Object instance)
+        {
+            if (instance is T tInstance)
+            {
+                Release(tInstance);
+            }
+            else
+            {
+                Debug.LogWarningFormat("Ignoring incompatible pooled object: expected type '{0}' but found '{1}'", typeof(T), instance.GetType());
+            }
         }
 
         public void Release(T instance)
@@ -131,7 +147,7 @@ namespace Gilzoide.PrefabPool
                 for (int i = 0, count = list.Count; i < count; i++)
                 {
                     IPooledObject poolObject = list[i];
-                    poolObject.PoolSentinel = null;
+                    poolObject.PoolSentinel = default;
                     poolObject.OnReleaseToPool();
                 }
             }

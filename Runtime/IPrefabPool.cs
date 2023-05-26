@@ -3,7 +3,12 @@ using UnityEngine.Pool;
 
 namespace Gilzoide.PrefabPool
 {
-    public interface IPrefabPool<T> : IObjectPool<T> where T : Object
+    public interface IPrefabPool
+    {
+        void Release(Object instance);
+    }
+
+    public interface IPrefabPool<T> : IPrefabPool, IObjectPool<T> where T : Object
     {
         T Prefab { get; }
     }
