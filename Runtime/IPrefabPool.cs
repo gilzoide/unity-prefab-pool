@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Gilzoide.PrefabPool
 {
@@ -23,7 +22,7 @@ namespace Gilzoide.PrefabPool
 
     public static class IPrefabPoolExtensions
     {
-        public static bool TryGetPooled<T>(this IObjectPool<T> pool, out T instance) where T : class
+        public static bool TryGetPooled<T>(this IPrefabPool<T> pool, out T instance) where T : Object
         {
             if (pool.CountInactive > 0)
             {

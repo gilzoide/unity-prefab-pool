@@ -34,10 +34,10 @@ namespace Gilzoide.PrefabPool.Editor
     }
 
     [CustomEditor(typeof(APrefabPoolAsset<,>), true)]
-    public class APrefabPoolAssetEditor : APrefabPoolEditor {}
+    public class PrefabPoolAssetEditor : APrefabPoolEditor {}
 
     [CustomEditor(typeof(APrefabPoolComponent<,>), true)]
-    public class APrefabPoolComponentEditor : APrefabPoolEditor
+    public class PrefabPoolComponentEditor : APrefabPoolEditor
     {
         protected override bool IsEnabled => (serializedObject.targetObject as MonoBehaviour).isActiveAndEnabled;
     }
