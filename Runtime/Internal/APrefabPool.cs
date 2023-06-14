@@ -107,7 +107,7 @@ namespace Gilzoide.PrefabPool
 
         protected ObjectPool<T> CreatePool()
         {
-            return new ObjectPool<T>(Create, OnGet, OnRelease, Object.Destroy);
+            return new ObjectPool<T>(Create, OnGet, OnRelease, OnDestroy);
         }
 
         protected T Create()
@@ -151,6 +151,21 @@ namespace Gilzoide.PrefabPool
                     IPooledObject poolObject = list[i];
                     poolObject.OnReleaseToPool();
                 }
+            }
+        }
+
+        protected void OnDestroy(T instance)
+        {
+            Object objectToDestroy = instance is Component component
+                ? component.gameObject
+                : instance;
+            if (Application.isPlaying)
+            {
+                Object.Destroy(objectToDestroy);
+            }
+            else
+            {
+                Object.DestroyImmediate(objectToDestroy);
             }
         }
 
