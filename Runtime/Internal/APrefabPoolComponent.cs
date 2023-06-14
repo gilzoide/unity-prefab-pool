@@ -26,7 +26,10 @@ namespace Gilzoide.PrefabPool
 
         void OnEnable()
         {
-            Prewarm();
+            if (Application.isPlaying)
+            {
+                Prewarm();
+            }
         }
 
         void OnDisable()

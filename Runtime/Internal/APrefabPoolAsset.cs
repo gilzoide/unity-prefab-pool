@@ -13,7 +13,7 @@ namespace Gilzoide.PrefabPool
             + "Instances are spawned asynchronously. "
             + "At most 'Objects Per Frame' objects will be prewarmed per frame.")]
         [SerializeField, Min(0)] protected int _initialObjectCount;
-        
+
         [Tooltip("Maximum number of instances that will be spawned per frame when pool is created. "
             + "If zero, all items will be prewarmed in a single frame.")]
         [SerializeField, Min(0)] protected int _objectsPerFrame;
@@ -26,21 +26,10 @@ namespace Gilzoide.PrefabPool
 
         void OnEnable()
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.playModeStateChanged += mode =>
+            if (Application.isPlaying)
             {
-                if (mode == UnityEditor.PlayModeStateChange.EnteredPlayMode)
-                {
-                    Prewarm();
-                }
-                else if (mode == UnityEditor.PlayModeStateChange.ExitingPlayMode)
-                {
-                    Dispose();
-                }
-            };
-#else
-            Prewarm();
-#endif
+                Prewarm();
+            }
         }
 
         void OnDisable()
