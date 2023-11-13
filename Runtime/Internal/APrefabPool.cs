@@ -37,13 +37,12 @@ namespace Gilzoide.PrefabPool
         public PoolSentinel Get(out T instance)
         {
             instance = Pool.Get();
-            PoolSentinel poolSentinel = new PoolSentinel(this, instance);
+            var poolSentinel = new PoolSentinel(this, instance);
             using (GetInstanceObjects(instance, out List<IPooledObject> list, out _))
             {
-                for (int i = 0, count = list.Count; i < count; i++)
+                foreach (IPooledObject poolObject in list)
                 {
-                    IPooledObject obj = list[i];
-                    obj.PoolSentinel = poolSentinel;
+                    poolObject.PoolSentinel = poolSentinel;
                 }
             }
             return poolSentinel;
@@ -82,8 +81,10 @@ namespace Gilzoide.PrefabPool
 
         public async Task PrewarmAsync(int count, int instancesPerFrame, CancellationToken cancellationToken)
         {
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancelOnDispose.Token);
-            await PrewarmAsyncInternal(count, instancesPerFrame, linkedCancellation.Token);
+            using (CancellationTokenSource linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancelOnDispose.Token))
+            {
+                await PrewarmAsyncInternal(count, instancesPerFrame, linkedCancellation.Token);
+            }
         }
 
         public void Clear()
@@ -121,9 +122,8 @@ namespace Gilzoide.PrefabPool
         {
             using (GetInstanceObjects(instance, out List<IPooledObject> list, out GameObject gameObject))
             {
-                for (int i = 0, count = list.Count; i < count; i++)
+                foreach (IPooledObject poolObject in list)
                 {
-                    IPooledObject poolObject = list[i];
                     poolObject.OnGetFromPool();
                 }
                 if (gameObject)
@@ -137,18 +137,16 @@ namespace Gilzoide.PrefabPool
         {
             using (GetInstanceObjects(instance, out List<IPooledObject> list, out GameObject gameObject))
             {
-                for (int i = 0, count = list.Count; i < count; i++)
+                foreach (IPooledObject poolObject in list)
                 {
-                    IPooledObject poolObject = list[i];
                     poolObject.PoolSentinel = default;
                 }
                 if (gameObject)
                 {
                     gameObject.SetActive(false);
                 }
-                for (int i = 0, count = list.Count; i < count; i++)
+                foreach (IPooledObject poolObject in list)
                 {
-                    IPooledObject poolObject = list[i];
                     poolObject.OnReleaseToPool();
                 }
             }
