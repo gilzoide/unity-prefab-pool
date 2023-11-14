@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-namespace Gilzoide.PrefabPool
+namespace Gilzoide.PrefabPool.Internal
 {
-    public abstract class APrefabPoolComponent<T, TPool> : MonoBehaviour, IPrefabPool<T>
+    public abstract class APrefabPoolComponent<T, TPool> : MonoBehaviour, IPrefabPool<T>, IDisposable
         where T : Object
         where TPool : APrefabPool<T>, new()
     {

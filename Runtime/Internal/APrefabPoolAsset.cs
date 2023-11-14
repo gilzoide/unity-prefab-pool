@@ -1,9 +1,12 @@
+using System;
 using Gilzoide.PrefabPool.Extensions;
+using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool.Internal
 {
-    public abstract class APrefabPoolAsset<T, TPool> : ScriptableObject, IPrefabPool<T>
+    public abstract class APrefabPoolAsset<T, TPool> : ScriptableObject, IPrefabPool<T>, IDisposable
         where T : Object
         where TPool : APrefabPool<T>, new()
     {
@@ -27,7 +30,10 @@ namespace Gilzoide.PrefabPool.Internal
 
         void OnEnable()
         {
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged += this.DisposeWhenExitingPlayMode;
             if (Application.isPlaying)
+#endif
             {
                 Prewarm();
             }
@@ -35,6 +41,9 @@ namespace Gilzoide.PrefabPool.Internal
 
         void OnDisable()
         {
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged -= this.DisposeWhenExitingPlayMode;
+#endif
             Dispose();
         }
 
