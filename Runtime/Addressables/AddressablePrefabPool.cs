@@ -1,5 +1,6 @@
 #if HAVE_ADDRESSABLES
 using System;
+using Gilzoide.PrefabPool.Internal;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using Object = UnityEngine.Object;
@@ -7,28 +8,47 @@ using Object = UnityEngine.Object;
 namespace Gilzoide.PrefabPool
 {
     [Serializable]
-    public class AddressablePrefabPool<T> : APrefabPool<T> where T : Object
+    public class AddressablePrefabPool<T> : APrefabPool<T>
+        where T : Object
     {
         [Tooltip("Prefab which instances will be pooled. "
             + "The addressable asset will be loaded when the first instance is created and released when the pool is disposed.")]
-        [SerializeField] protected AssetReferenceT<T> _prefab;
+        [SerializeField] protected AssetReferenceT<T> _prefabReference;
 
         public AddressablePrefabPool() : base() {}
-        public AddressablePrefabPool(AssetReferenceT<T> prefab) : base()
+        public AddressablePrefabPool(AssetReferenceT<T> prefabReference) : base()
         {
-            _prefab = prefab;
+            _prefabReference = prefabReference;
         }
 
-        public override T Prefab => _prefab.IsValid()
-            ? (T) _prefab.Asset
-            : _prefab.LoadAssetAsync().WaitForCompletion();
+        public AssetReferenceT<T> PrefabReference
+        {
+            get => _prefabReference;
+            set
+            {
+                Dispose();
+                _prefabReference = value;
+            }
+        }
+
+        public override T GetPrefab()
+        {
+            if (_prefabReference.IsValid())
+            {
+                return (T) _prefabReference.Asset;
+            }
+            else
+            {
+                return _prefabReference.LoadAssetAsync().WaitForCompletion();
+            }
+        }
 
         public override void Dispose()
         {
             base.Dispose();
-            if (_prefab.IsValid())
+            if (_prefabReference.IsValid())
             {
-                _prefab.ReleaseAsset();
+                _prefabReference.ReleaseAsset();
             }
         }
     }

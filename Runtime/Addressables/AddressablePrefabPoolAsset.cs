@@ -1,9 +1,11 @@
 #if HAVE_ADDRESSABLES
+using Gilzoide.PrefabPool.Internal;
 using UnityEngine;
 
 namespace Gilzoide.PrefabPool
 {
-    public class AddressablePrefabPoolAsset<T> : APrefabPoolAsset<T, AddressablePrefabPool<T>> where T : Object
+    public class AddressablePrefabPoolAsset<T> : APrefabPoolAsset<T, AddressablePrefabPool<T>>
+        where T : Object
     {
     }
 

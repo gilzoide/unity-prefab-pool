@@ -1,8 +1,10 @@
+using Gilzoide.PrefabPool.Internal;
 using UnityEngine;
 
 namespace Gilzoide.PrefabPool
 {
-    public class PrefabPoolAsset<T> : APrefabPoolAsset<T, PrefabPool<T>> where T : Object
+    public class PrefabPoolAsset<T> : APrefabPoolAsset<T, PrefabPool<T>>
+        where T : Object
     {
     }
 

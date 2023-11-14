@@ -22,14 +22,11 @@ namespace Gilzoide.PrefabPool
         public int CountActive => _pool.CountActive;
         public int CountInactive => _pool.CountInactive;
 
-        public T Prefab => _pool.Prefab;
+        public TPool Pool => _pool;
 
         void OnEnable()
         {
-            if (Application.isPlaying)
-            {
-                Prewarm();
-            }
+            Prewarm();
         }
 
         void OnDisable()

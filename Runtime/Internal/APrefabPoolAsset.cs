@@ -1,6 +1,7 @@
+using Gilzoide.PrefabPool.Extensions;
 using UnityEngine;
 
-namespace Gilzoide.PrefabPool
+namespace Gilzoide.PrefabPool.Internal
 {
     public abstract class APrefabPoolAsset<T, TPool> : ScriptableObject, IPrefabPool<T>
         where T : Object
@@ -22,7 +23,7 @@ namespace Gilzoide.PrefabPool
         public int CountActive => _pool.CountActive;
         public int CountInactive => _pool.CountInactive;
 
-        public T Prefab => _pool.Prefab;
+        public TPool Pool => _pool;
 
         void OnEnable()
         {

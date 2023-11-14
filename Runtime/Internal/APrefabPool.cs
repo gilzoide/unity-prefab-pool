@@ -2,26 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Gilzoide.PrefabPool.Extensions;
 using UnityEngine;
-using UnityEngine.Pool;
 using Object = UnityEngine.Object;
 
-namespace Gilzoide.PrefabPool
+namespace Gilzoide.PrefabPool.Internal
 {
     [Serializable]
     public abstract class APrefabPool<T> : IPrefabPool<T>, IDisposable where T : Object
     {
-        public abstract T Prefab { get; }
+        public abstract T GetPrefab();
 
-        public int CountAll => _pool?.CountAll ?? 0;
-        public int CountActive => _pool?.CountActive ?? 0;
-        public int CountInactive => _pool?.CountInactive ?? 0;
+        public int CountAll { get; private set; }
+        public int CountActive => CountAll - CountInactive;
+        public int CountInactive => _stack.Count;
 
-        private ObjectPool<T> Pool => _pool != null ? _pool : (_pool = CreatePool());
-        private ObjectPool<T> _pool;
+        protected CancellationTokenSource CancelOnDispose => _cancelOnDispose ??= new();
+        protected CancellationTokenSource _cancelOnDispose;
 
-        protected CancellationTokenSource CancelOnDispose => _cancelOnDispose != null ? _cancelOnDispose : (_cancelOnDispose = new());
-        private CancellationTokenSource _cancelOnDispose;
+        private readonly Stack<T> _stack = new();
 
         ~APrefabPool()
         {
@@ -36,13 +35,22 @@ namespace Gilzoide.PrefabPool
 
         public PoolSentinel Get(out T instance)
         {
-            instance = Pool.Get();
-            var poolSentinel = new PoolSentinel(this, instance);
-            using (GetInstanceObjects(instance, out List<IPooledObject> list, out _))
+            if (!_stack.TryPop(out instance))
             {
+                instance = CreateInstance();
+            }
+
+            var poolSentinel = new PoolSentinel(this, instance);
+            using (instance.GetInterfaceObjects(out List<IPooledObject> list, out GameObject gameObject))
+            {
+                if (gameObject)
+                {
+                    gameObject.SetActive(true);
+                }
                 foreach (IPooledObject poolObject in list)
                 {
                     poolObject.PoolSentinel = poolSentinel;
+                    poolObject.OnGetFromPool();
                 }
             }
             return poolSentinel;
@@ -62,7 +70,24 @@ namespace Gilzoide.PrefabPool
 
         public void Release(T instance)
         {
-            _pool?.Release(instance);
+            if (instance == null)
+            {
+                return;
+            }
+
+            _stack.Push(instance);
+            using (instance.GetInterfaceObjects(out List<IPooledObject> list, out GameObject gameObject))
+            {
+                foreach (IPooledObject poolObject in list)
+                {
+                    poolObject.PoolSentinel = default;
+                    poolObject.OnReleaseToPool();
+                }
+                if (gameObject)
+                {
+                    gameObject.SetActive(false);
+                }
+            }
         }
 
         public async void Prewarm(int count, int instancesPerFrame = 0)
@@ -89,7 +114,12 @@ namespace Gilzoide.PrefabPool
 
         public void Clear()
         {
-            _pool?.Clear();
+            foreach (T instance in _stack)
+            {
+                DestroyInstance(instance);
+            }
+            _stack.Clear();
+            CountAll = 0;
         }
 
         public virtual void Dispose()
@@ -99,61 +129,20 @@ namespace Gilzoide.PrefabPool
                 _cancelOnDispose.Cancel();
                 _cancelOnDispose = null;
             }
-            if (_pool != null)
-            {
-                _pool.Dispose();
-                _pool = null;
-            }
+            Clear();
         }
 
-        protected ObjectPool<T> CreatePool()
+        protected T CreateInstance()
         {
-            return new ObjectPool<T>(Create, OnGet, OnRelease, OnDestroy);
-        }
-
-        protected T Create()
-        {
-            T instance = Object.Instantiate(Prefab);
+            CountAll++;
+            T instance = Object.Instantiate(GetPrefab());
             instance.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
             return instance;
         }
 
-        protected void OnGet(T instance)
+        protected void DestroyInstance(T instance)
         {
-            using (GetInstanceObjects(instance, out List<IPooledObject> list, out GameObject gameObject))
-            {
-                foreach (IPooledObject poolObject in list)
-                {
-                    poolObject.OnGetFromPool();
-                }
-                if (gameObject)
-                {
-                    gameObject.SetActive(true);
-                }
-            }
-        }
-
-        protected void OnRelease(T instance)
-        {
-            using (GetInstanceObjects(instance, out List<IPooledObject> list, out GameObject gameObject))
-            {
-                foreach (IPooledObject poolObject in list)
-                {
-                    poolObject.PoolSentinel = default;
-                }
-                if (gameObject)
-                {
-                    gameObject.SetActive(false);
-                }
-                foreach (IPooledObject poolObject in list)
-                {
-                    poolObject.OnReleaseToPool();
-                }
-            }
-        }
-
-        protected void OnDestroy(T instance)
-        {
+            CountAll = Mathf.Max(0, CountAll - 1);
             Object objectToDestroy = instance is Component component
                 ? component.gameObject
                 : instance;
@@ -165,31 +154,6 @@ namespace Gilzoide.PrefabPool
             {
                 Object.DestroyImmediate(objectToDestroy);
             }
-        }
-
-        protected PooledObject<List<IPooledObject>> GetInstanceObjects(T instance, out List<IPooledObject> objs, out GameObject gameObject)
-        {
-            var pooledList = ListPool<IPooledObject>.Get(out objs);
-            if (instance is GameObject go)
-            {
-                gameObject = go;
-                gameObject.GetComponentsInChildren(true, objs);
-            }
-            else if (instance is Component component)
-            {
-                gameObject = component.gameObject;
-                gameObject.GetComponentsInChildren(true, objs);
-            }
-            else if (instance is IPooledObject poolObject)
-            {
-                gameObject = null;
-                objs.Add(poolObject);
-            }
-            else
-            {
-                gameObject = null;
-            }
-            return pooledList;
         }
 
         private async Task PrewarmAsyncInternal(int count, int instancesPerFrame, CancellationToken cancellationToken)
@@ -204,20 +168,22 @@ namespace Gilzoide.PrefabPool
                 instancesPerFrame = count;
             }
 
-            using (ListPool<T>.Get(out List<T> list))
             while (true)
             {
                 for (int i = 0; i < instancesPerFrame; i++)
                 {
-                    if (Pool.CountAll >= count)
+                    if (CountAll >= count)
                     {
-                        list.ForEach(Pool.Release);
                         return;
                     }
                     cancellationToken.ThrowIfCancellationRequested();
-                    T instance = Pool.Get();
-                    OnRelease(instance);
-                    list.Add(instance);
+
+                    T instance = CreateInstance();
+                    if (instance.TryGetGameObject(out GameObject gameObject))
+                    {
+                        gameObject.SetActive(false);
+                    }
+                    _stack.Push(instance);
                 }
                 await Task.Yield();
             }

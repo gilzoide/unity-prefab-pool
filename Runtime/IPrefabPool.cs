@@ -12,9 +12,9 @@ namespace Gilzoide.PrefabPool
         void Release(Object instance);
     }
 
-    public interface IPrefabPool<T> : IPrefabPool where T : Object
+    public interface IPrefabPool<T> : IPrefabPool
+        where T : Object
     {
-        T Prefab { get; }
         T Get();
         PoolSentinel Get(out T instance);
         void Release(T instance);
@@ -22,7 +22,8 @@ namespace Gilzoide.PrefabPool
 
     public static class IPrefabPoolExtensions
     {
-        public static bool TryGetPooled<T>(this IPrefabPool<T> pool, out T instance) where T : Object
+        public static bool TryGetPooled<T>(this IPrefabPool<T> pool, out T instance)
+            where T : Object
         {
             if (pool.CountInactive > 0)
             {
