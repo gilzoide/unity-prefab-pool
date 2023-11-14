@@ -27,7 +27,6 @@ Either:
 using System.Collections;
 using Gilzoide.PrefabPool;
 using UnityEngine;
-using UnityEngine.Pool;
 
 public class MyScript : MonoBehaviour
 {
@@ -42,6 +41,7 @@ public class MyScript : MonoBehaviour
     public PrefabPoolAsset myPoolAsset;
     
     // 1.c) Private/embedded PrefabPool, needs manual prewarm/disposal.
+    //      Configure it in the Inspector.
     public PrefabPool myPoolVariable;
 
 
@@ -117,7 +117,7 @@ To customize the prefab type accepted by a prefab pool component, create a concr
 ```cs
 using Gilzoide.PrefabPool;
 
-public class MyScriptPoolComponent : PrefabPoolComponent<MyScript>;
+public class MyScriptPoolComponent : PrefabPoolComponent<MyScript>
 {
 }
 ```
@@ -160,3 +160,4 @@ The reason I made a brand new implementation is because alternatives either:
 - Don't have Inspector-ready serializable pool types, being too code oriented
 - Don't support pools as assets using `ScriptableObject`s
 - Don't support asynchronous prewarming with configurable batch size, potentially leading to CPU spikes while instantiating prefabs
+- Don't support Addressable asset references
