@@ -10,10 +10,8 @@ using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool.Internal
 {
-    [Serializable]
     public abstract class APrefabPool<T> : IPrefabPool<T>, IDisposable where T : Object
     {
-        public bool DestroyActiveObjectsOnClear = true;
         public abstract T GetPrefab();
 
         public int CountAll => CountActive + CountInactive;
@@ -131,12 +129,9 @@ namespace Gilzoide.PrefabPool.Internal
 
         public void Clear()
         {
-            if (DestroyActiveObjectsOnClear)
+            foreach (T instance in _activeObjects)
             {
-                foreach (T instance in _activeObjects)
-                {
-                    DestroyInstance(instance);
-                }
+                DestroyInstance(instance);
             }
             _activeObjects.Clear();
 
