@@ -1,3 +1,6 @@
+#if (UNITY_EDITOR || DEVELOPMENT_BUILD) && !PREFAB_POOL_NO_DEBUG_LOGS
+    #define PREFAB_POOL_DEBUG_LOGS
+#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -175,7 +178,7 @@ namespace Gilzoide.PrefabPool.Internal
             }
         }
 
-        [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD"), Conditional("PREFAB_POOL_DEBUG_LOGS")]
+        [Conditional("PREFAB_POOL_DEBUG_LOGS")]
         protected void LogWarning(string message)
         {
             Debug.LogWarning($"[PrefabPool] {message}", this as Object);
