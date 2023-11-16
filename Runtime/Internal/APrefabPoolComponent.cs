@@ -8,7 +8,7 @@ namespace Gilzoide.PrefabPool.Internal
         where T : Object
         where TPool : APrefabPool<T>, new()
     {
-        [SerializeField] protected TPool _pool = new();
+        [SerializeField] protected TPool _pool = new TPool();
 
         [Header("Prewarm")]
         [Tooltip("Number of instances that will be spawned when the pool is created. "
@@ -51,9 +51,9 @@ namespace Gilzoide.PrefabPool.Internal
             return _pool.Get(out instance);
         }
 
-        public void Release(Object instance)
+        public void Release(PoolSentinel sentinel)
         {
-            _pool.Release(instance);
+            _pool.Release(sentinel);
         }
 
         public void Release(T instance)

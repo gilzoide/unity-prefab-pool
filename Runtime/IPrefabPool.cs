@@ -9,7 +9,7 @@ namespace Gilzoide.PrefabPool
         int CountInactive { get; }
 
         void Clear();
-        void Release(Object instance);
+        void Release(PoolSentinel poolSentinel);
     }
 
     public interface IPrefabPool<T> : IPrefabPool

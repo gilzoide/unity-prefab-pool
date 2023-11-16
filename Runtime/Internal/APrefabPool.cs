@@ -13,14 +13,15 @@ namespace Gilzoide.PrefabPool.Internal
     {
         public abstract T GetPrefab();
 
-        public int CountAll { get; private set; }
-        public int CountActive => CountAll - CountInactive;
-        public int CountInactive => _stack.Count;
+        public int CountAll => CountActive + CountInactive;
+        public int CountActive => _activeObjects.Count;
+        public int CountInactive => _inactiveObjects.Count;
 
-        protected CancellationTokenSource CancelOnDispose => _cancelOnDispose ??= new();
+        protected CancellationTokenSource CancelOnDispose => _cancelOnDispose ??= new CancellationTokenSource();
         protected CancellationTokenSource _cancelOnDispose;
 
-        private readonly Stack<T> _stack = new();
+        private readonly Stack<T> _inactiveObjects = new Stack<T>();
+        private readonly SortedObjectList<T> _activeObjects = new SortedObjectList<T>();
 
         ~APrefabPool()
         {
@@ -35,10 +36,11 @@ namespace Gilzoide.PrefabPool.Internal
 
         public PoolSentinel Get(out T instance)
         {
-            if (!_stack.TryPop(out instance))
+            if (!_inactiveObjects.TryPop(out instance))
             {
                 instance = CreateInstance();
             }
+            _activeObjects.Add(instance);
 
             var poolSentinel = new PoolSentinel(this, instance);
             using (instance.GetInterfaceObjects(out List<IPooledObject> list, out GameObject gameObject))
@@ -56,8 +58,15 @@ namespace Gilzoide.PrefabPool.Internal
             return poolSentinel;
         }
 
-        public void Release(Object instance)
+        public void Release(PoolSentinel sentinel)
         {
+            if (sentinel.Pool != this)
+            {
+                Debug.LogWarning($"Trying to release a {nameof(PoolSentinel)} from another pool.", this as Object);
+                return;
+            }
+
+            Object instance = sentinel.PooledObject; 
             if (instance is T tInstance)
             {
                 Release(tInstance);
@@ -75,7 +84,12 @@ namespace Gilzoide.PrefabPool.Internal
                 return;
             }
 
-            _stack.Push(instance);
+            if (!_activeObjects.Remove(instance))
+            {
+                throw new ArgumentOutOfRangeException(nameof(instance), "Instance is not a known active instance from this pool");
+            }
+
+            _inactiveObjects.Push(instance);
             using (instance.GetInterfaceObjects(out List<IPooledObject> list, out GameObject gameObject))
             {
                 foreach (IPooledObject poolObject in list)
@@ -114,12 +128,17 @@ namespace Gilzoide.PrefabPool.Internal
 
         public void Clear()
         {
-            foreach (T instance in _stack)
+            foreach (T instance in _activeObjects)
             {
                 DestroyInstance(instance);
             }
-            _stack.Clear();
-            CountAll = 0;
+            _activeObjects.Clear();
+
+            foreach (T instance in _inactiveObjects)
+            {
+                DestroyInstance(instance);
+            }
+            _inactiveObjects.Clear();
         }
 
         public virtual void Dispose()
@@ -134,15 +153,14 @@ namespace Gilzoide.PrefabPool.Internal
 
         protected T CreateInstance()
         {
-            CountAll++;
-            T instance = Object.Instantiate(GetPrefab());
+            T prefab = GetPrefab();
+            T instance = Object.Instantiate(prefab);
             instance.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
             return instance;
         }
 
-        protected void DestroyInstance(T instance)
+        protected void DestroyInstance(Object instance)
         {
-            CountAll = Mathf.Max(0, CountAll - 1);
             Object objectToDestroy = instance is Component component
                 ? component.gameObject
                 : instance;
@@ -183,7 +201,7 @@ namespace Gilzoide.PrefabPool.Internal
                     {
                         gameObject.SetActive(false);
                     }
-                    _stack.Push(instance);
+                    _inactiveObjects.Push(instance);
                 }
                 await Task.Yield();
             }

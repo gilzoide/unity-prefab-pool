@@ -18,7 +18,7 @@ namespace Gilzoide.PrefabPool
         {
             if (Pool != null && PooledObject != null)
             {
-                Pool.Release(PooledObject);
+                Pool.Release(this);
                 this = default;
             }
         }
