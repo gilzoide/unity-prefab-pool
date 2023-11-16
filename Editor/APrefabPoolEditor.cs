@@ -1,45 +1,76 @@
+using System.Collections.Generic;
 using Gilzoide.PrefabPool.Internal;
 using UnityEditor;
 using UnityEngine;
 
 namespace Gilzoide.PrefabPool.Editor
 {
-    [CanEditMultipleObjects]
     public abstract class APrefabPoolEditor : UnityEditor.Editor
     {
-        public override bool HasPreviewGUI()
-        {
-            return Application.isPlaying && IsEnabled;
-        }
+        [SerializeField] private bool _foldoutInactive;
+        [SerializeField] private bool _foldoutActive;
 
-        public override void OnPreviewGUI(Rect r, GUIStyle background)
+        public override void OnInspectorGUI()
         {
+            DrawDefaultInspector();
+
+            if (!IsDebugPanelEnabled())
+            {
+                return;
+            }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Debug panel", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             using (new EditorGUI.DisabledScope(true))
             {
                 var pool = serializedObject.targetObject as IPrefabPool;
-                r.height = EditorGUI.GetPropertyHeight(SerializedPropertyType.Integer, GUIContent.none);
-                EditorGUI.IntField(r, "Inactive Count", pool.CountInactive);
-                r.y += r.height + EditorGUIUtility.standardVerticalSpacing;
-                EditorGUI.IntField(r, "Active Count", pool.CountActive);
-                r.y += r.height + EditorGUIUtility.standardVerticalSpacing;
-                EditorGUI.IntField(r, "Total Count", pool.CountAll);
+                EditorGUILayout.LabelField($"Total instances: {pool.CountAll}");
+                if (_foldoutActive = EditorGUILayout.Foldout(_foldoutActive, $"Active instances: {pool.CountActive}"))
+                {
+                    DrawObjectList(pool.ActiveInstances);
+                }
+                if (_foldoutInactive = EditorGUILayout.Foldout(_foldoutInactive, $"Inactive instances: {pool.CountInactive}"))
+                {
+                    DrawObjectList(pool.InactiveInstances);
+                }
             }
+            EditorGUI.indentLevel--;
         }
 
         public override bool RequiresConstantRepaint()
         {
-            return HasPreviewGUI();
+            return IsDebugPanelEnabled() && !EditorApplication.isPaused;
         }
         
-        protected virtual bool IsEnabled => true;
+        protected virtual bool IsPoolEnabled => true;
+
+        private bool IsDebugPanelEnabled()
+        {
+            return Application.isPlaying
+                && !serializedObject.isEditingMultipleObjects
+                && IsPoolEnabled;
+        }
+
+        private void DrawObjectList(IEnumerable<Object> objects)
+        {
+            EditorGUI.indentLevel++;
+            foreach (Object obj in objects)
+            {
+                EditorGUILayout.ObjectField(GUIContent.none, obj, typeof(Object), true);
+            }
+            EditorGUI.indentLevel--;
+        }
     }
 
     [CustomEditor(typeof(APrefabPoolAsset<,>), true)]
+    [CanEditMultipleObjects]
     public class PrefabPoolAssetEditor : APrefabPoolEditor {}
 
     [CustomEditor(typeof(APrefabPoolComponent<,>), true)]
+    [CanEditMultipleObjects]
     public class PrefabPoolComponentEditor : APrefabPoolEditor
     {
-        protected override bool IsEnabled => (serializedObject.targetObject as MonoBehaviour).isActiveAndEnabled;
+        protected override bool IsPoolEnabled => (serializedObject.targetObject as MonoBehaviour).isActiveAndEnabled;
     }
 }
