@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Gilzoide.PrefabPool.Extensions;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool.Internal
@@ -11,6 +13,7 @@ namespace Gilzoide.PrefabPool.Internal
     [Serializable]
     public abstract class APrefabPool<T> : IPrefabPool<T>, IDisposable where T : Object
     {
+        public bool DestroyActiveObjectsOnClear = true;
         public abstract T GetPrefab();
 
         public int CountAll => CountActive + CountInactive;
@@ -62,7 +65,7 @@ namespace Gilzoide.PrefabPool.Internal
         {
             if (sentinel.Pool != this)
             {
-                Debug.LogWarning($"Trying to release a {nameof(PoolSentinel)} from another pool.", this as Object);
+                LogWarning($"Trying to release a {nameof(PoolSentinel)} from another pool.");
                 return;
             }
 
@@ -73,7 +76,7 @@ namespace Gilzoide.PrefabPool.Internal
             }
             else
             {
-                Debug.LogWarningFormat("Ignoring incompatible pooled object: expected type '{0}' but found '{1}'", typeof(T), instance.GetType());
+                LogWarning($"Ignoring incompatible pooled object: expected type '{typeof(T)}' but found '{instance.GetType()}'");
             }
         }
 
@@ -86,7 +89,7 @@ namespace Gilzoide.PrefabPool.Internal
 
             if (!_activeObjects.Remove(instance))
             {
-                throw new ArgumentOutOfRangeException(nameof(instance), "Instance is not a known active instance from this pool");
+                LogWarning($"Releasing an instance that was not active.");
             }
 
             _inactiveObjects.Push(instance);
@@ -128,9 +131,12 @@ namespace Gilzoide.PrefabPool.Internal
 
         public void Clear()
         {
-            foreach (T instance in _activeObjects)
+            if (DestroyActiveObjectsOnClear)
             {
-                DestroyInstance(instance);
+                foreach (T instance in _activeObjects)
+                {
+                    DestroyInstance(instance);
+                }
             }
             _activeObjects.Clear();
 
@@ -172,6 +178,12 @@ namespace Gilzoide.PrefabPool.Internal
             {
                 Object.DestroyImmediate(objectToDestroy);
             }
+        }
+
+        [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD"), Conditional("PREFAB_POOL_DEBUG_LOGS")]
+        protected void LogWarning(string message)
+        {
+            Debug.LogWarning($"[PrefabPool] {message}", this as Object);
         }
 
         private async Task PrewarmAsyncInternal(int count, int instancesPerFrame, CancellationToken cancellationToken)
