@@ -15,6 +15,8 @@ namespace Gilzoide.PrefabPool
             + "The addressable asset will be loaded when the first instance is created and released when the pool is disposed.")]
         [SerializeField] protected AssetReferenceT<T> _prefabReference;
 
+        private bool _hasLoadedAsset = false;
+
         public AddressablePrefabPool() : base() {}
         public AddressablePrefabPool(AssetReferenceT<T> prefabReference) : base()
         {
@@ -33,23 +35,26 @@ namespace Gilzoide.PrefabPool
 
         public override T GetPrefab()
         {
-            if (_prefabReference.IsValid())
+            if (_hasLoadedAsset && _prefabReference.IsValid())
             {
                 return (T) _prefabReference.Asset;
             }
             else
             {
-                return _prefabReference.LoadAssetAsync().WaitForCompletion();
+                T prefab = _prefabReference.LoadAssetAsync().WaitForCompletion();
+                _hasLoadedAsset = true;
+                return prefab;
             }
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            if (_prefabReference.IsValid())
+            if (_hasLoadedAsset && _prefabReference.IsValid())
             {
                 _prefabReference.ReleaseAsset();
             }
+            _hasLoadedAsset = false;
         }
     }
 
