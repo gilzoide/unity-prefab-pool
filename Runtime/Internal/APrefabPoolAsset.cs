@@ -1,6 +1,4 @@
 using System;
-using Gilzoide.PrefabPool.Extensions;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -31,7 +29,7 @@ namespace Gilzoide.PrefabPool.Internal
         void OnEnable()
         {
 #if UNITY_EDITOR
-            EditorApplication.playModeStateChanged += this.DisposeWhenExitingPlayMode;
+            Application.quitting += Dispose;
             if (Application.isPlaying)
 #endif
             {
@@ -42,7 +40,7 @@ namespace Gilzoide.PrefabPool.Internal
         void OnDisable()
         {
 #if UNITY_EDITOR
-            EditorApplication.playModeStateChanged -= this.DisposeWhenExitingPlayMode;
+            Application.quitting -= Dispose;
 #endif
             Dispose();
         }
