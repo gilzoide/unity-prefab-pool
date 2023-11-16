@@ -54,7 +54,7 @@ namespace Gilzoide.PrefabPool.Internal
                 }
                 foreach (IPooledObject poolObject in list)
                 {
-                    poolObject.PoolSentinel = poolSentinel;
+                    poolObject.PoolHandle = poolSentinel;
                     poolObject.OnGetFromPool();
                 }
             }
@@ -97,7 +97,7 @@ namespace Gilzoide.PrefabPool.Internal
             {
                 foreach (IPooledObject poolObject in list)
                 {
-                    poolObject.PoolSentinel = default;
+                    poolObject.PoolHandle = default;
                     poolObject.OnReleaseToPool();
                 }
                 if (gameObject)

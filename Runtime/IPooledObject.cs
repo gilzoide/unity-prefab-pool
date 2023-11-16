@@ -2,7 +2,7 @@ namespace Gilzoide.PrefabPool
 {
     public interface IPooledObject
     {
-        PoolHandle PoolSentinel { get; set; }
+        PoolHandle PoolHandle { get; set; }
         void OnGetFromPool() {}
         void OnReleaseToPool() {}
     }
@@ -11,7 +11,7 @@ namespace Gilzoide.PrefabPool
     {
         public static void ReturnToPool(this IPooledObject pooledObject)
         {
-            pooledObject.PoolSentinel.ReturnToPool();
+            pooledObject.PoolHandle.ReturnToPool();
         }
     }
 }
