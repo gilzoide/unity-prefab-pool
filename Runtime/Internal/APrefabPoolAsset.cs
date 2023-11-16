@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -23,6 +24,11 @@ namespace Gilzoide.PrefabPool.Internal
         public int CountAll => _pool.CountAll;
         public int CountActive => _pool.CountActive;
         public int CountInactive => _pool.CountInactive;
+
+        public IReadOnlyCollection<T> ActiveInstances => _pool.ActiveInstances;
+        public IReadOnlyCollection<T> InactiveInstances => _pool.InactiveInstances;
+        IReadOnlyCollection<Object> IPrefabPool.ActiveInstances => ActiveInstances;
+        IReadOnlyCollection<Object> IPrefabPool.InactiveInstances => InactiveInstances;
 
         public TPool Pool => _pool;
 

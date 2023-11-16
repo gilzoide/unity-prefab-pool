@@ -7,7 +7,7 @@ namespace Gilzoide.PrefabPool.Internal
     /// <summary>
     /// Object list with sorted addition, for O(log N) removal
     /// </summary>
-    public class SortedObjectList<T> : IComparer<T>, IEnumerable<T>
+    public class SortedObjectList<T> : IComparer<T>, IReadOnlyCollection<T>
         where T : Object
     {
         private readonly List<T> _list = new List<T>();

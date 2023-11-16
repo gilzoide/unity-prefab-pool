@@ -21,6 +21,11 @@ namespace Gilzoide.PrefabPool.Internal
         public int CountActive => _activeObjects.Count;
         public int CountInactive => _inactiveObjects.Count;
 
+        public IReadOnlyCollection<T> ActiveInstances => _activeObjects;
+        public IReadOnlyCollection<T> InactiveInstances => _inactiveObjects;
+        IReadOnlyCollection<Object> IPrefabPool.ActiveInstances => ActiveInstances;
+        IReadOnlyCollection<Object> IPrefabPool.InactiveInstances => InactiveInstances;
+
         protected CancellationTokenSource CancelOnDispose => _cancelOnDispose ??= new CancellationTokenSource();
         protected CancellationTokenSource _cancelOnDispose;
 
