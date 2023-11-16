@@ -57,12 +57,12 @@ namespace Gilzoide.PrefabPool.Internal
             return _pool.Get();
         }
 
-        public PoolSentinel Get(out T instance)
+        public PoolHandle Get(out T instance)
         {
             return _pool.Get(out instance);
         }
 
-        public void Release(PoolSentinel sentinel)
+        public void Release(PoolHandle sentinel)
         {
             _pool.Release(sentinel);
         }

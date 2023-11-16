@@ -4,6 +4,6 @@ namespace Gilzoide.PrefabPool
 {
     public abstract class APooledBehaviour : MonoBehaviour, IPooledObject
     {
-        public PoolSentinel PoolSentinel { get; set; }
+        public PoolHandle PoolSentinel { get; set; }
     }
 }

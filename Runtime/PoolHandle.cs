@@ -3,12 +3,12 @@ using Object = UnityEngine.Object;
 
 namespace Gilzoide.PrefabPool
 {
-    public struct PoolSentinel : IDisposable
+    public struct PoolHandle : IDisposable
     {
         public IPrefabPool Pool;
         public Object PooledObject;
 
-        public PoolSentinel(IPrefabPool pool, Object pooledObject)
+        public PoolHandle(IPrefabPool pool, Object pooledObject)
         {
             Pool = pool;
             PooledObject = pooledObject;

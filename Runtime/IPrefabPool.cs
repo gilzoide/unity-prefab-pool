@@ -9,14 +9,14 @@ namespace Gilzoide.PrefabPool
         int CountInactive { get; }
 
         void Clear();
-        void Release(PoolSentinel poolSentinel);
+        void Release(PoolHandle handle);
     }
 
     public interface IPrefabPool<T> : IPrefabPool
         where T : Object
     {
         T Get();
-        PoolSentinel Get(out T instance);
+        PoolHandle Get(out T instance);
         void Release(T instance);
     }
 

@@ -37,7 +37,7 @@ namespace Gilzoide.PrefabPool.Internal
             return instance;
         }
 
-        public PoolSentinel Get(out T instance)
+        public PoolHandle Get(out T instance)
         {
             if (!_inactiveObjects.TryPop(out instance))
             {
@@ -45,7 +45,7 @@ namespace Gilzoide.PrefabPool.Internal
             }
             _activeObjects.Add(instance);
 
-            var poolSentinel = new PoolSentinel(this, instance);
+            var poolSentinel = new PoolHandle(this, instance);
             using (instance.GetInterfaceObjects(out List<IPooledObject> list, out GameObject gameObject))
             {
                 if (gameObject)
@@ -61,11 +61,11 @@ namespace Gilzoide.PrefabPool.Internal
             return poolSentinel;
         }
 
-        public void Release(PoolSentinel sentinel)
+        public void Release(PoolHandle sentinel)
         {
             if (sentinel.Pool != this)
             {
-                LogWarning($"Trying to release a {nameof(PoolSentinel)} from another pool.");
+                LogWarning($"Trying to release a {nameof(PoolHandle)} from another pool.");
                 return;
             }
 
