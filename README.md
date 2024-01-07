@@ -18,7 +18,7 @@ Prefab instance pool that is configurable in the Inspector, supports any engine 
 Either:
 - Install using the [Unity Package Manager](https://docs.unity3d.com/Manual/upm-ui-giturl.html) with the following URL:
   ```
-  https://github.com/gilzoide/unity-prefab-pool.git
+  https://github.com/gilzoide/unity-prefab-pool.git#1.0.0-preview1
   ```
 - Clone this repository or download a snapshot of it directly inside your project's `Assets` or `Packages` folder.
 
