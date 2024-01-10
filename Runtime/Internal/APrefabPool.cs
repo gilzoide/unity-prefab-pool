@@ -170,6 +170,11 @@ namespace Gilzoide.PrefabPool.Internal
 
         protected void DestroyInstance(Object instance)
         {
+            if (instance == null)
+            {
+                return;
+            }
+
             Object objectToDestroy = instance is Component component
                 ? component.gameObject
                 : instance;
