@@ -1,4 +1,6 @@
 # Prefab Pool
+[![openupm](https://img.shields.io/npm/v/com.gilzoide.prefab-pool?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.gilzoide.prefab-pool/)
+
 Prefab instance pool that is configurable in the Inspector, supports any engine `Object` type and is available as a serializable C# class, MonoBehaviour and ScriptableObject.
 
 
@@ -16,6 +18,10 @@ Prefab instance pool that is configurable in the Inspector, supports any engine 
 
 ## How to install
 Either:
+- Use the [openupm registry](https://openupm.com/) and install this package using the [openupm-cli](https://github.com/openupm/openupm-cli):
+  ```
+  openupm add com.gilzoide.prefab-pool
+  ```
 - Install using the [Unity Package Manager](https://docs.unity3d.com/Manual/upm-ui-giturl.html) with the following URL:
   ```
   https://github.com/gilzoide/unity-prefab-pool.git#1.0.0-preview2
