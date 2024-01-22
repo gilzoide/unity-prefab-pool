@@ -7,12 +7,12 @@ namespace Gilzoide.PrefabPool
         public UnityEvent OnGet;
         public UnityEvent OnRelease;
 
-        public void OnGetFromPool()
+        public override void OnGetFromPool()
         {
             OnGet.Invoke();
         }
 
-        public void OnReleaseToPool()
+        public override void OnReleaseToPool()
         {
             OnRelease.Invoke();
         }
